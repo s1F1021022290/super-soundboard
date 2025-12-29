@@ -15,11 +15,11 @@
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
     "libsodium-wrappers": "^0.7.13",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "@types/node": "^20.12.12",
+    "@types/ws": "^8.5.10"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
-    "@types/ws": "^8.5.10",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tslib": "^2.6.2",
