@@ -4,9 +4,75 @@
   "cooldownMs": 2500,
   "mappings": [
     {
+      "keywords": ["だいじょうぶだ", "大丈夫だ"],
+      "file": "da-zhang-fu-da-wen-ti-nai.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["かいじだな", "開示だな", "カイジ"],
+      "file": "kai-shi-dana.mp3",
+      "volume": 0.5
+    },
+    {
       "keywords": ["なにこれ", "何これ"],
-      "file": "nanikore.mp3",
-      "volume": 1
+      "file": "gorori-nanikore.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["なんだよもうまたかよ", "またかよ", "何だよもう"],
+      "file": "nandayo-moooo-matakayoooo.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["バジリスクタイム", "ばじりすくたいむ"],
+      "file": "m_fixed_1Ve8gQw.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["やりますねえ", "やりますね"],
+      "file": "yarimasune.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["黄金の風", "おうごんのかぜ"],
+      "file": "ziyoziyo4.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["しぬ", "死ぬ"],
+      "file": "shen-hayan-tsuteiru-kokodesi-nuding-medehanaito.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["ごみかす", "ゴミカス"],
+      "file": "aa-gomikasu-tahine_IMXTNPI.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["なるほど"],
+      "file": "konan-hiramekiyin.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["大概に", "たいがい"],
+      "file": "huzakerunomoda-gai-nisayyo.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["うま娘", "うまむすめ", "ウマ娘", "ウマムスメ", "うまぴょい"],
+      "file": "2__Hae5243.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["いけ", "行け","いくしかねえな", "行くしかねえな"],
+      "file": "oiragaikushikaneena.mp3",
+      "volume": 0.5
+    },
+    {
+      "keywords": ["ふざけんなよ", "ふざけんな", "フザケンナヨ"],
+      "file": "fuzakenna-yo.mp3",
+      "volume": 0.5
     }
+
   ]
 }

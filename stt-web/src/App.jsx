@@ -63,7 +63,7 @@ const App = () => {
 
   const connectWs = () => {
     try {
-      const url = `ws://127.0.0.1:${appConfig.wsPort}`;
+      const url = `ws://172.17.36.93:${appConfig.wsPort}`;
       console.log("[WebSocket] Connecting to", url);
       setWsStatus("connecting");
       wsRef.current = new WebSocket(url);

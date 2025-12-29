@@ -415,7 +415,7 @@ const handleTestPlay = async (interaction: ChatInputCommandInteraction) => {
 };
 
 const startWebSocketServer = () => {
-  const wss = new WebSocketServer({ port: env.wsPort });
+  const wss = new WebSocketServer({ port: env.wsPort, host: "0.0.0.0" });
   wss.on("connection", (ws, req) => {
     const remote = req.socket.remoteAddress;
     log("info", "WS client connected", { remote });
@@ -482,7 +482,7 @@ const startWebSocketServer = () => {
     ws.on("error", (error) => log("error", "WS client error", { error: (error as Error).message }));
   });
 
-  wss.on("listening", () => log("info", `WS server listening on ws://127.0.0.1:${env.wsPort}`));
+  wss.on("listening", () => log("info", `WS server listening on ws://0.0.0.0:${env.wsPort}`));
   wss.on("error", (error) => log("error", "WS server error", { error: (error as Error).message }));
 };
 
