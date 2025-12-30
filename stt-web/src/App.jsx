@@ -63,7 +63,16 @@ const App = () => {
 
   const connectWs = () => {
     try {
-      const url = `ws://172.17.36.93:${appConfig.wsPort}`;
+      let url;
+      const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      // If served from same origin (production), connect to same host over ws/wss.
+      if (!isLocal) {
+        url = `${proto}://${location.host}`;
+      } else {
+        // For local development, use configured wsPort from config.json
+        url = `${proto}://${location.hostname}:${appConfig.wsPort}`;
+      }
       console.log("[WebSocket] Connecting to", url);
       setWsStatus("connecting");
       wsRef.current = new WebSocket(url);
