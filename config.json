@@ -2,6 +2,7 @@
   "wsPort": 3210,
   "lang": "ja-JP",
   "cooldownMs": 2500,
+  "r2BaseUrl": "https://pub-434b3646b5a54a738ab54d03b70671bb.r2.dev",
   "mappings": [
     {
       "keywords": ["だいじょうぶだ", "大丈夫だ"],
