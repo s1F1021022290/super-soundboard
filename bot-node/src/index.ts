@@ -26,6 +26,7 @@ import {
 import dotenv from "dotenv";
 import { WebSocketServer } from "ws";
 import http from "http";
+import https from "https";
 
 type SoundMapping = {
   keywords: string[];
@@ -38,6 +39,7 @@ type AppConfig = {
   cooldownMs: number;
   wsPort?: number;
   lang?: string;
+  r2BaseUrl?: string;
 };
 
 type EnvConfig = {
@@ -167,6 +169,68 @@ resolvedMappings.forEach((m) => {
     log("warn", `Sound file not found at ${m.filePath}. Place the mp3 before playing.`);
   }
 });
+
+const downloadFileFromUrl = (urlStr: string, destPath: string): Promise<void> =>
+  new Promise((resolve, reject) => {
+    try {
+      const urlObj = new URL(urlStr);
+      const getter = urlObj.protocol === "http:" ? http.get : https.get;
+      const req = getter(urlStr, (res) => {
+        if (res.statusCode && [301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
+          // follow redirect
+          res.resume();
+          return downloadFileFromUrl(res.headers.location as string, destPath).then(resolve).catch(reject);
+        }
+        if (!res.statusCode || res.statusCode >= 400) {
+          res.resume();
+          return reject(new Error(`Failed to download ${urlStr}, status ${res.statusCode}`));
+        }
+        const tmp = `${destPath}.part`;
+        const dir = path.dirname(destPath);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        const fileStream = fs.createWriteStream(tmp);
+        res.pipe(fileStream);
+        fileStream.on("finish", () => {
+          fileStream.close(() => {
+            try {
+              fs.renameSync(tmp, destPath);
+            } catch (err) {}
+            resolve();
+          });
+        });
+        fileStream.on("error", (err) => {
+          try {
+            fs.unlinkSync(tmp);
+          } catch {}
+          reject(err);
+        });
+      });
+      req.on("error", reject);
+    } catch (err) {
+      reject(err);
+    }
+  });
+
+const ensureSoundsAvailable = async () => {
+  const base = (appConfig as any).r2BaseUrl;
+  for (const m of resolvedMappings) {
+    if (fs.existsSync(m.filePath)) continue;
+    const fileName = path.basename(m.filePath);
+    if (base) {
+      const b = (base as string).replace(/\/$/, "");
+      const url = `${b}/${encodeURIComponent(fileName)}`;
+      log("info", `Attempting to download from R2: ${url}`);
+      try {
+        await downloadFileFromUrl(url, m.filePath);
+        log("info", `Downloaded file to ${m.filePath}`);
+        continue;
+      } catch (err: any) {
+        log("warn", `R2 download failed for ${fileName}: ${err.message}`);
+      }
+    }
+    log("warn", `No source found for ${m.filePath}`);
+  }
+};
 
 const getMappingForKeyword = (keyword?: string): ResolvedMapping | null => {
   if (keyword) {
@@ -551,6 +615,13 @@ const bootstrap = async () => {
   if (shouldRegisterOnly) {
     log("info", "Register-only mode, exiting");
     return;
+  }
+
+  // Ensure sounds are available (try R2/public URL first)
+  try {
+    await ensureSoundsAvailable();
+  } catch (err) {
+    log("warn", "Some sounds could not be ensured before startup");
   }
 
   log("info", "Starting WebSocket server");
