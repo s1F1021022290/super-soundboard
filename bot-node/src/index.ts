@@ -25,6 +25,7 @@ import {
 } from "discord.js";
 import dotenv from "dotenv";
 import { WebSocketServer } from "ws";
+import http from "http";
 
 type SoundMapping = {
   keywords: string[];
@@ -90,7 +91,8 @@ const resolveEnv = (defaultWsPort: number): EnvConfig => {
     return value;
   };
 
-  const wsPortRaw = process.env.WS_PORT || String(defaultWsPort);
+  // Prefer platform-provided PORT (Render, etc.) so the service uses a single exposed port.
+  const wsPortRaw = process.env.PORT || process.env.WS_PORT || String(defaultWsPort);
   const wsPort = Number(wsPortRaw);
   if (Number.isNaN(wsPort)) {
     throw new Error(`WS_PORT must be a number. Received "${wsPortRaw}"`);
@@ -415,7 +417,53 @@ const handleTestPlay = async (interaction: ChatInputCommandInteraction) => {
 };
 
 const startWebSocketServer = () => {
-  const wss = new WebSocketServer({ port: env.wsPort, host: "0.0.0.0" });
+  const publicDir = path.resolve(__dirname, "..", "..", "stt-web", "dist");
+
+  const server = http.createServer((req, res) => {
+    const url = req.url || "/";
+    // If built web assets exist, serve them. Otherwise respond with a simple 200.
+    if (fs.existsSync(publicDir)) {
+      let filePath = path.join(publicDir, decodeURIComponent(url.split("?")[0]));
+      if (filePath.endsWith(path.sep)) filePath = path.join(filePath, "index.html");
+      if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+        filePath = path.join(publicDir, "index.html");
+      }
+      try {
+        const data = fs.readFileSync(filePath);
+        const ext = path.extname(filePath).toLowerCase();
+        const map: Record<string, string> = {
+          ".html": "text/html",
+          ".js": "application/javascript",
+          ".css": "text/css",
+          ".json": "application/json",
+          ".png": "image/png",
+          ".jpg": "image/jpeg",
+          ".jpeg": "image/jpeg",
+          ".svg": "image/svg+xml",
+          ".mp3": "audio/mpeg",
+        };
+        res.writeHead(200, { "Content-Type": map[ext] || "application/octet-stream" });
+        res.end(data);
+        return;
+      } catch (err: any) {
+        res.writeHead(500);
+        res.end("Internal Server Error");
+        return;
+      }
+    }
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("OK");
+  });
+
+  const wss = new WebSocketServer({ noServer: true });
+
+  server.on("upgrade", (req, socket, head) => {
+    // Only handle websocket upgrades here; other upgrades are ignored.
+    wss.handleUpgrade(req, socket as any, head, (ws) => {
+      wss.emit("connection", ws, req);
+    });
+  });
+
   wss.on("connection", (ws, req) => {
     const remote = req.socket.remoteAddress;
     log("info", "WS client connected", { remote });
@@ -482,7 +530,11 @@ const startWebSocketServer = () => {
     ws.on("error", (error) => log("error", "WS client error", { error: (error as Error).message }));
   });
 
-  wss.on("listening", () => log("info", `WS server listening on ws://0.0.0.0:${env.wsPort}`));
+  server.listen(env.wsPort, "0.0.0.0", () => {
+    log("info", `HTTP+WS server listening on http://0.0.0.0:${env.wsPort}`);
+  });
+
+  server.on("error", (error) => log("error", "HTTP server error", { error: (error as Error).message }));
   wss.on("error", (error) => log("error", "WS server error", { error: (error as Error).message }));
 };
 

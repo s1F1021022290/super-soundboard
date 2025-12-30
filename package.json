@@ -9,7 +9,7 @@
     "build": "npm-run-all build:*",
     "build:bot": "cd bot-node && npm run build",
     "build:web": "cd stt-web && npm run build",
-    "start": "npm-run-all --parallel start:*",
+    "start": "cd bot-node && npm run start",
     "start:bot": "cd bot-node && npm run start",
     "start:web": "cd stt-web && npm run preview -- --host",
     "init": "npm install && cd bot-node && npm install && cd ../stt-web && npm install",
